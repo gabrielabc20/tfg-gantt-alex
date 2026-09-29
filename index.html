@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TFG Gantt">
+<meta name="theme-color" content="#fff5f8">
+<title>TFG Gantt</title>
+<script>
+// 🔥 PEGA AQUÍ TU firebaseConfig
+const FIREBASE_CONFIG={apiKey:"AIzaSyA_bM_ERYTun08m1zlw_1bLY6R1N8awkWo",authDomain:"tfm-gantt.firebaseapp.com",projectId:"tfm-gantt",storageBucket:"tfm-gantt.firebasestorage.app",messagingSenderId:"777924753151",appId:"1:777924753151:web:55b9ddde4c7864d339feca"};
+// ID único del proyecto (cambia el texto, sin espacios)
+const PROJECT_ID="tfg-amigo-2026";
+</script>
+<style>
+:root{--bg:#fff5f8;--s:#ffffff;--s2:#fff0f5;--b:#f9d5e2;--b2:#f3bfd3;--t:#5a3a48;--m:#b58a9d;--ac:#ec7fa9;--dg:#e0567f;--ok:#8fcfa6;--wn:#f4a261;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:-apple-system,system-ui,sans-serif}
+#app{display:none;flex-direction:column;height:100dvh}
+.top{padding:calc(var(--st) + 10px) 16px 10px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:12px}
+.top div.h{flex:1}.top h1{font-size:17px}.top p{font-size:11px;color:var(--m)}
+.ib{width:36px;height:36px;border-radius:10px;border:1px solid var(--b2);background:var(--s);color:var(--t);font-size:16px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--m)}.dot.synced{background:var(--ok)}.dot.syncing{background:var(--wn)}.dot.error{background:var(--dg)}
+.tabs{display:flex;background:var(--s);border-bottom:1px solid var(--b)}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:12px;font-weight:600;color:var(--m);border-bottom:2px solid transparent}
+.tab.on{color:var(--ac);border-color:var(--ac)}
+.view{flex:1;overflow-y:auto;padding:12px 16px 90px}.view.hid{display:none}
+.ban{background:rgba(91,141,238,.13);border:1px solid rgba(91,141,238,.3);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.ban strong{display:block;font-size:14px}.ban span{font-size:11px;color:var(--m)}.ban .big{margin-left:auto;font-size:22px;font-weight:800;color:var(--ac)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.cd{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:12px}
+.cd small{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:.12em}.cd b{display:block;font-size:24px;margin-top:4px}
+.bar0{height:3px;background:var(--b);border-radius:2px;margin-top:8px}.bar0 i{display:block;height:100%;background:var(--ac);border-radius:2px}
+h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.15em;margin:18px 0 8px}
+.tc{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.tc.cur{border-color:var(--ac)}.tc.od{border-color:var(--dg)}.tc.done{opacity:.5}.tc.done .tn{text-decoration:line-through}
+.ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--b2);font-size:11px;color:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tc.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
+.ti{flex:1;min-width:0}.tn{font-size:14px;font-weight:600}.tm{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.bd{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s2);color:var(--m);font-weight:600}
+.to{font-size:11px;color:var(--m);margin-top:4px}
+.eb{width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);color:var(--m);display:flex;align-items:center;justify-content:center}
+.ph{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-weight:700;font-size:13px}.ph i{width:10px;height:10px;border-radius:3px}.ph span{margin-left:auto;color:var(--m);font-weight:400}
+.ms{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.ms.past{opacity:.45}.ms b{font-size:14px}.ms small{display:block;font-size:11px;color:var(--m)}.ms .d{margin-left:auto;font-weight:800;font-size:13px;color:var(--ac)}
+.gs{overflow-x:auto;border:1px solid var(--b);border-radius:12px}
+.gr{display:grid;border-bottom:1px solid var(--b);min-height:28px;align-items:center}
+.gl{padding:0 8px;font-size:9px;font-weight:700;color:var(--m);background:var(--s);align-self:stretch;display:flex;align-items:center}
+.gw{text-align:center;font-size:9px;color:var(--m);padding:5px 0}.gw.now{color:var(--dg);font-weight:800;background:rgba(251,113,133,.1)}
+.bar{height:14px;border-radius:4px;margin:0 1px}.dm{text-align:center;font-size:13px}
+.fab{position:fixed;right:20px;bottom:calc(var(--sb) + 76px);width:52px;height:52px;border-radius:50%;background:var(--ac);color:#fff;font-size:26px;border:none;display:none;z-index:50}
+.nav{display:flex;background:var(--s);border-top:1px solid var(--b);padding-bottom:var(--sb)}
+.ni{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:600;color:var(--m)}.ni.on{color:var(--ac)}.ni div{font-size:19px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;justify-content:center}.ov.open{display:flex}
+.md{background:var(--s);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:18px 20px calc(var(--sb) + 16px)}
+.md h3{font-size:17px;margin-bottom:14px}
+label{display:block;font-size:11px;color:var(--m);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 5px}
+input,select{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:11px 13px;color:var(--t);font-size:16px;font-family:inherit}
+input[type=color]{height:44px;padding:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ft{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--b2);background:var(--s2);color:var(--t);font-size:15px;font-weight:700}
+.btn.p{background:var(--ac);border-color:var(--ac);color:#fff}.btn.d{color:var(--dg)}
+.mi{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid var(--b);font-size:15px}
+.mi i{width:12px;height:12px;border-radius:3px}
+.em{text-align:center;color:var(--m);padding:32px 16px;font-size:13px;line-height:1.6}
+.toast{position:fixed;bottom:calc(var(--sb) + 84px);left:50%;transform:translateX(-50%);background:var(--t);color:var(--bg);font-size:13px;font-weight:600;padding:10px 18px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:900}.toast.show{opacity:1}
+#load{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--m)}
+
+html,body{background-color:var(--bg);background-image:radial-gradient(#f9d5e2 1.2px,transparent 1.2px);background-size:20px 20px}
+h1,h2,h3,.big,.cd b{font-family:Georgia,'Times New Roman',serif}
+.top,.tabs,.nav{background:rgba(255,255,255,.85);backdrop-filter:blur(8px)}
+.top h1{font-style:italic;color:var(--ac)}.top h1::before{content:'🎀 '}
+h2{text-align:center}h2::before{content:'✿ '}h2::after{content:' ✿'}
+.cd,.tc,.ms,.gs,.ban{border-radius:20px;box-shadow:0 3px 12px rgba(236,127,169,.15)}
+.ban{background:linear-gradient(135deg,#ffe3ee,#ffd0e2);border:1px solid var(--b2)}
+.bar0 i{background:linear-gradient(90deg,#f7a8c4,#ec7fa9)}
+.tc.cur{background:#fff7fa}.tc.done .ck{color:#fff}
+.bd,.btn,input,select,.ib,.eb{border-radius:14px}
+.btn.p,.fab{background:linear-gradient(135deg,#f49ac0,#ec7fa9);border-color:transparent}
+.fab{box-shadow:0 4px 16px rgba(236,127,169,.5)}
+.md{border-radius:26px 26px 0 0}
+.ov{background:rgba(90,58,72,.45)}
+.tab.on,.ni.on{color:var(--ac)}
+.em::before{content:'🎀';display:block;font-size:28px;margin-bottom:6px}
+</style></head><body>
+<div id="load">Conectando...</div>
+<div id="app">
+ <div class="top"><div class="h"><h1 id="ttl">TFG Gantt</h1><p id="today"></p></div><div class="dot" id="dot"></div><button class="ib" onclick="openF('menu')">⋯</button></div>
+ <div class="tabs" id="tabs"></div>
+ <div class="view" id="v-home"></div><div class="view hid" id="v-gantt"></div>
+ <div class="view hid" id="v-tasks"></div><div class="view hid" id="v-hitos"></div>
+ <button class="fab" id="fab" onclick="addNew()">+</button>
+ <div class="nav" id="nav"></div>
+</div>
+<div class="ov" id="ov" onclick="if(event.target===this)closeF()"><div class="md" id="md"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getFirestore,doc,getDoc,setDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const $=i=>document.getElementById(i);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const fd=s=>pd(s).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+const mk=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));const e=new Date(d);e.setDate(e.getDate()+98-1);
+ return{project:{title:'Mi TFG',startDate:iso(d),endDate:iso(e),totalWeeks:14},phases:[],tasks:[],milestones:[]}};
+let S=mk(),db,tab='home',form=null,timer;
+const W=()=>S.project.totalWeeks||14;
+const today=()=>{const n=new Date();n.setHours(0,0,0,0);return n};
+const cw=()=>Math.floor(Math.round((today()-pd(S.project.startDate))/864e5)/7)+1;
+const du=s=>Math.round((pd(s)-today())/864e5);
+const PH=id=>S.phases.find(p=>p.id===id)||{name:'Sin fase',color:'#c9a5b5'};
+const toast=m=>{const e=$('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2000)};
+const sync=s=>{$('dot').className='dot '+s};
+
+async function init(){
+ if(FIREBASE_CONFIG.apiKey.includes('PEGA_AQUI')){$('load').innerHTML='⚠️ Falta pegar tu firebaseConfig al inicio del archivo HTML.';return}
+ try{
+  sync('syncing');db=getFirestore(initializeApp(FIREBASE_CONFIG));
+  const ref=doc(db,'projects',PROJECT_ID);
+  if(!(await getDoc(ref)).exists())await setDoc(ref,{...S,updatedAt:new Date().toISOString()});
+  onSnapshot(ref,s=>{if(s.exists()){const d=s.data();S={project:d.project||S.project,phases:d.phases||[],tasks:d.tasks||[],milestones:d.milestones||[]};render();sync('synced')}},()=>sync('error'));
+  $('load').style.display='none';$('app').style.display='flex';render();
+ }catch(e){$('load').innerHTML='⚠️ Error de conexión<br><small>'+esc(e.message)+'</small>'}
+}
+function save(){clearTimeout(timer);timer=setTimeout(async()=>{try{sync('syncing');await setDoc(doc(db,'projects',PROJECT_ID),{...S,updatedAt:new Date().toISOString()});sync('synced')}catch{sync('error');toast('⚠ Error al guardar')}},500)}
+
+const card=t=>{const c=cw(),p=PH(t.phase),cur=t.weekStart<=c&&t.weekEnd>=c,od=t.weekEnd<c&&!t.done;
+ return `<div class="tc${t.done?' done':od?' od':cur?' cur':''}" onclick="tog('${t.id}')"><div class="ck">✓</div><div class="ti"><div class="tn">${esc(t.name)}</div><div class="tm"><span class="bd" style="background:${p.color}22;color:${p.color}">${esc(p.name)}</span><span class="bd">S${t.weekStart}${t.weekEnd>t.weekStart?'–S'+t.weekEnd:''}</span>${od?'<span class="bd" style="color:var(--dg)">⚠ Atrasada</span>':''}</div>${t.output?`<div class="to">→ ${esc(t.output)}</div>`:''}</div><div class="eb" onclick="event.stopPropagation();openF('task','${t.id}')">✎</div></div>`};
+const mcard=m=>{const d=du(m.date);return `<div class="ms${d<0?' past':''}" onclick="openF('ms','${m.id}')"><div style="font-size:22px">${esc(m.icon||'◆')}</div><div><b>${esc(m.name)}</b><small>${fd(m.date)}</small></div><div class="d">${d<0?'Pasado':d===0?'¡Hoy!':d+'d'}</div></div>`};
+
+function render(){
+ const c=cw(),n=W(),T=S.tasks,dn=T.filter(x=>x.done).length,pct=T.length?Math.round(dn/T.length*100):0,dl=du(S.project.endDate);
+ $('ttl').textContent=S.project.title||'TFG Gantt';
+ $('today').textContent=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+ const wk=c<1?'Antes del inicio':c>n?'Plazo finalizado':`Semana ${c} de ${n}`;
+ const wt=T.filter(t=>t.weekStart<=c&&t.weekEnd>=c);
+ const ups=S.milestones.filter(m=>du(m.date)>=0).sort((a,b)=>du(a.date)-du(b.date));
+ $('v-home').innerHTML=`<div class="ban"><div><strong>${wk}</strong><span>Entrega: ${fd(S.project.endDate)}</span></div><div class="big">${dl>0?dl+'d':dl===0?'¡Hoy!':'🎓'}</div></div>
+ <div class="cards"><div class="cd"><small>Progreso</small><b>${pct}%</b><span style="font-size:10px;color:var(--m)">${dn} / ${T.length} tareas</span><div class="bar0"><i style="width:${pct}%"></i></div></div>
+ <div class="cd"><small>Próximo hito</small><b>${ups[0]?(du(ups[0].date)||'¡Hoy!'):'—'}</b><span style="font-size:10px;color:var(--m)">${ups[0]?esc(ups[0].name):'sin hitos'}</span></div></div>
+ <h2>Esta semana</h2>${wt.map(card).join('')||'<div class="em">No hay tareas esta semana</div>'}
+ <h2>Próximos hitos</h2>${ups.slice(0,3).map(mcard).join('')||'<div class="em">Sin hitos próximos</div>'}`;
+ // gantt
+ const g=`grid-template-columns:90px repeat(${n},1fr)`;
+ let h=`<div style="min-width:${90+n*38}px"><div class="gr" style="${g}"><div class="gl">Semana</div>${Array.from({length:n},(_,i)=>`<div class="gw${i+1===c?' now':''}">S${i+1}</div>`).join('')}</div>`;
+ T.forEach(t=>{const p=PH(t.phase);h+=`<div class="gr" style="${g}"><div class="gl" style="color:${p.color}">${t.done?'✓ ':''}${esc(t.name.slice(0,22))}</div><div class="bar" style="grid-column:${t.weekStart+1}/${t.weekEnd+2};background:${p.color}${t.done?'44':'bb'}"></div></div>`});
+ if(S.milestones.length){h+=`<div class="gr" style="${g}"><div class="gl" style="color:var(--dg)">Hitos</div>`;
+  S.milestones.forEach(m=>{const w=Math.floor(Math.round((pd(m.date)-pd(S.project.startDate))/864e5)/7)+1;if(w>=1&&w<=n)h+=`<div class="dm" style="grid-column:${w+1}">${esc(m.icon||'◆')}</div>`});h+='</div>'}
+ $('v-gantt').innerHTML=T.length||S.milestones.length?`<h2>Vista Gantt</h2><div class="gs">${h}</div></div>`:'<div class="em">Aún no hay tareas.<br>Añádelas en la pestaña Tareas.</div>';
+ // tasks
+ const groups=[...S.phases,{id:'',name:'Sin fase',color:'#c9a5b5'}];let th='';
+ groups.forEach(p=>{const l=T.filter(t=>(t.phase||'')===p.id||(!p.id&&!S.phases.some(x=>x.id===t.phase)));if(!l.length)return;
+  th+=`<div class="ph"><i style="background:${p.color}"></i>${esc(p.name)}<span>${l.filter(t=>t.done).length}/${l.length}</span></div>${l.map(card).join('')}`});
+ $('v-tasks').innerHTML=th||`<div class="em">Sin tareas todavía.<br>${S.phases.length?'Pulsa + para añadir la primera.':'Crea primero una fase en ⋯ → Nueva fase, y luego pulsa +.'}</div>`;
+ $('v-hitos').innerHTML=[...S.milestones].sort((a,b)=>du(a.date)-du(b.date)).map(mcard).join('')||'<div class="em">Sin hitos.<br>Pulsa + para añadir el primero.</div>';
+ $('tabs').innerHTML=[['home','Inicio'],['gantt','Gantt'],['tasks','Tareas'],['hitos','Hitos']].map(([k,l])=>`<div class="tab${tab===k?' on':''}" onclick="go('${k}')">${l}</div>`).join('');
+ $('nav').innerHTML=[['home','⌂','Inicio'],['gantt','▦','Gantt'],['tasks','☑','Tareas'],['hitos','◆','Hitos']].map(([k,i,l])=>`<div class="ni${tab===k?' on':''}" onclick="go('${k}')"><div>${i}</div>${l}</div>`).join('');
+ ['home','gantt','tasks','hitos'].forEach(k=>$('v-'+k).classList.toggle('hid',k!==tab));
+ $('fab').style.display=tab==='tasks'||tab==='hitos'?'block':'none';
+}
+
+const inp=(l,i,v,t='text')=>`<label>${l}</label><input id="${i}" type="${t}" value="${esc(v)}">`;
+window.openF=(type,id)=>{form={type,id};
+ const T=S.tasks.find(x=>x.id===id)||{},P=S.phases.find(x=>x.id===id)||{},M=S.milestones.find(x=>x.id===id)||{},pr=S.project;
+ const wk=Math.min(Math.max(cw(),1),W());let b='',t='';
+ if(type==='menu'){t='Opciones';b=`<div class="mi" onclick="openF('proj')">⚙️ Configurar proyecto</div><div class="mi" onclick="openF('phase')">➕ Nueva fase</div>${S.phases.map(p=>`<div class="mi" onclick="openF('phase','${p.id}')"><i style="background:${p.color}"></i>${esc(p.name)} <span style="margin-left:auto;color:var(--m)">✎</span></div>`).join('')}<div class="mi" style="color:var(--dg)" onclick="wipe()">🗑️ Vaciar todo</div><div class="ft"><button class="btn" onclick="closeF()">Cerrar</button></div>`;}
+ else{
+  if(type==='task'){t=id?'Editar tarea':'Nueva tarea';b=inp('Nombre','f1',T.name)+`<label>Fase</label><select id="f2"><option value="">Sin fase</option>${S.phases.map(p=>`<option value="${p.id}"${p.id===T.phase?' selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="two">${inp('Semana inicio','f3',T.weekStart||wk,'number')}${inp('Semana fin','f4',T.weekEnd||wk,'number')}</div>`+inp('Output esperado (opcional)','f5',T.output)}
+  if(type==='phase'){t=id?'Editar fase':'Nueva fase';b=inp('Nombre','f1',P.name)+inp('Color','f2',P.color||'#ec7fa9','color')}
+  if(type==='ms'){t=id?'Editar hito':'Nuevo hito';b=inp('Nombre','f1',M.name)+inp('Fecha','f2',M.date||iso(new Date()),'date')+inp('Icono (emoji)','f3',M.icon||'🎯')}
+  if(type==='proj'){t='Configurar proyecto';b=inp('Nombre','f1',pr.title)+inp('Fecha de inicio (Semana 1)','f2',pr.startDate,'date')+inp('Fecha de entrega','f3',pr.endDate,'date')+inp('Número de semanas','f4',W(),'number')}
+  b+=`<div class="ft">${id&&type!=='proj'?'<button class="btn d" onclick="delF()">Eliminar</button>':''}<button class="btn" onclick="closeF()">Cancelar</button><button class="btn p" onclick="saveF()">Guardar</button></div>`}
+ $('md').innerHTML=`<h3>${t}</h3>${b}`;$('ov').classList.add('open')};
+window.closeF=()=>$('ov').classList.remove('open');
+const up=(arr,id,data,pre,def={})=>{if(id)Object.assign(arr.find(x=>x.id===id),data);else arr.push({id:pre+Date.now(),...def,...data})};
+window.saveF=()=>{const{type,id}=form,v=k=>$(k).value.trim();
+ if(type!=='proj'&&!v('f1'))return toast('⚠ Escribe un nombre');
+ if(type==='task'){const ws=Math.max(1,+v('f3')||1),we=Math.max(ws,+v('f4')||ws);up(S.tasks,id,{name:v('f1'),phase:v('f2'),weekStart:ws,weekEnd:we,output:v('f5')},'t',{done:false})}
+ if(type==='phase')up(S.phases,id,{name:v('f1'),color:v('f2')},'p');
+ if(type==='ms')up(S.milestones,id,{name:v('f1'),date:v('f2'),icon:v('f3')||'◆'},'m');
+ if(type==='proj'){if(!v('f2')||!v('f3'))return toast('⚠ Introduce las fechas');S.project={title:v('f1')||'Mi TFG',startDate:v('f2'),endDate:v('f3'),totalWeeks:Math.max(1,Math.min(52,+v('f4')||14))}}
+ save();closeF();render();toast('Guardado ✓')};
+window.delF=()=>{const{type,id}=form;
+ if(type==='task')S.tasks=S.tasks.filter(x=>x.id!==id);
+ if(type==='phase')S.phases=S.phases.filter(x=>x.id!==id);
+ if(type==='ms')S.milestones=S.milestones.filter(x=>x.id!==id);
+ save();closeF();render();toast('Eliminado')};
+window.wipe=()=>{if(!confirm('¿Borrar todas las fases, tareas e hitos?'))return;S=mk();save();closeF();render()};
+window.tog=id=>{const t=S.tasks.find(x=>x.id===id);t.done=!t.done;save();render();toast(t.done?'✓ Completada':'Pendiente')};
+window.go=k=>{tab=k;render()};
+window.addNew=()=>openF(tab==='tasks'?'task':'ms');
+init();setInterval(()=>{if(db)render()},60000);
+</script></body></html>
